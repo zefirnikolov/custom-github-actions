@@ -46,9 +46,11 @@ jobs:
         with:
           version: '3.10.3'
       - name: Delete the helm chart
+        continue-on-error: true
         run: |
           helm uninstall ${{ inputs.helm-deployment-name }}
-      - name: Install the helm chart if not dinamic docker image
+      - name: Install the helm chart
         run: |
+          sleep 5
           helm install ${{ inputs.helm-deployment-name }} ${{ inputs.helm-chart-name }} ${{ inputs.additional-helm-commands }}
           
