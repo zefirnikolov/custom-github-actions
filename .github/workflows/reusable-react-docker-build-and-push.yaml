@@ -26,6 +26,7 @@ on:
       docker-image-name:
         required: true
         type: string
+      # for not constantly updating the docker image use the bellow inputs:
       is_static-docker-image-tag:
         required: false
         type: boolean
