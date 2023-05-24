@@ -49,7 +49,6 @@ jobs:
         run: |
           helm uninstall ${{ inputs.helm-deployment-name }}
       - name: Install the helm chart if not dinamic docker image
-        if: ${{ inputs.is_dinamic-docker-image == false }}
         run: |
           helm install ${{ inputs.helm-deployment-name }} ${{ inputs.helm-chart-name }} ${{ inputs.additional-helm-commands }}
           
