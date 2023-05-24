@@ -22,7 +22,7 @@ on:
       build-command:
         required: false
         type: string
-        default: npm build
+        default: npm run build
       docker-image-name:
         required: true
         type: string
