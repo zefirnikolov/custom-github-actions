@@ -26,6 +26,14 @@ on:
       docker-image-name:
         required: true
         type: string
+      is_static-docker-image-tag:
+        required: false
+        type: boolean
+        default: false
+      static-docker-image-tag:
+        required: false
+        type: string
+        default: false
 
     secrets:
       docker-username:
@@ -70,8 +78,17 @@ jobs:
           password: ${{ secrets.docker-password }}
 
       - name: Build and push Docker image
+        if: ${{ inputs.is_static-docker-image-tag == false }}
         uses: docker/build-push-action@v3
         with:
           context: .
           push: true
           tags: ${{ secrets.docker-username }}/${{ inputs.docker-image-name }}:${{ github.run_number }}
+
+      - name: Build and push Docker image
+        if: ${{ inputs.is_static-docker-image-tag }}
+        uses: docker/build-push-action@v3
+        with:
+          context: .
+          push: true
+          tags: ${{ secrets.docker-username }}/${{ inputs.docker-image-name }}:${{ inputs.static-docker-image-tag }}
