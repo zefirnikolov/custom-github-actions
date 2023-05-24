@@ -23,7 +23,7 @@ on:
         required: false
         type: string
         default: npm run build
-      docker-user-name:
+      docker-username:
         required: true
         type: string
       docker-password:
