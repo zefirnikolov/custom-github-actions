@@ -45,6 +45,7 @@ on:
 
 jobs:
   build-and-push:
+    if: ${{ inputs.build-the-app }}
     runs-on: ubuntu-latest
     steps:
       - name: Check out code
