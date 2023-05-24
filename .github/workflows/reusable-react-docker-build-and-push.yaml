@@ -1,0 +1,65 @@
+name: Build and push to docker hub
+
+on:
+  workflow_call:
+    inputs:
+      build-the-app:
+        required: true
+        type: boolean
+        default: false
+      subpath:
+        required: false
+        type: string
+        default: "/"
+      install-dependencies-command:
+        required: false
+        type: string
+        default: npm ci
+      build-command:
+        required: false
+        type: string
+        default: npm build
+      docker-image-name:
+        required: true
+        type: string
+
+jobs:
+  build-and-push:
+    # if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v3
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+
+      - name: Add homepage field to package.json
+        run: |
+          node -e "let pkg = require('./package.json'); pkg.homepage='${{ inputs.subpath }}'; require('fs').writeFileSync('package.json', JSON.stringify(pkg, null, 2));"
+          cat package.json
+      - name: Install dependencies and Build the app
+        run: |
+          ${{ inputs.install-dependencies-command }}
+          ${{ inputs.build-command }}
+
+      # - name: Run tests
+      #   run: npm run test
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v3
+        with:
+          context: .
+          push: true
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/${{ inputs.docker-image-name }}:${{ github.run_number }}
