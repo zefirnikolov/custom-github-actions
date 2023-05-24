@@ -1,0 +1,55 @@
+name: Build and push to docker hub
+
+on:
+  workflow_call:
+    inputs:
+      deploy-to-k8s:
+        required: true
+        type: boolean
+        default: false
+      helm-chart-name:
+        required: true
+        type: string
+      helm-deployment-name:
+        required: true
+        type: string
+      # use if your are going to use --values or --set flags
+      additional-helm-commands:
+        required: false
+        type: string
+    
+    secrets:
+      azure-credentials:
+        required: true
+      aks-cluster-name:
+        required: true
+      resource-group:
+        required: true
+
+      
+
+jobs:
+  deploy-to-k8s:
+    if: ${{ inputs.deploy-to-k8s }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v3
+      - name: Set AKS Context
+        uses: azure/aks-set-context@v3
+        with:
+          creds: ${{ secrets.azure-credentials }}
+          cluster-name: ${{ secrets.aks-cluster-name }}
+          resource-group: ${{ secrets.resource-group }}
+      - name: Install Helm
+        uses: azure/setup-helm@v3
+        with:
+          version: '3.10.3'
+      - name: Delete the helm chart
+        run: |
+          helm uninstall ${{ inputs.helm-deployment-name }}
+      - name: Install the helm chart if not dinamic docker image
+        if: ${{ inputs.is_dinamic-docker-image == false }}
+        run: |
+          helm install ${{ inputs.helm-deployment-name }} ${{ inputs.helm-chart-name }} ${{ inputs.additional-helm-commands }}
+          
