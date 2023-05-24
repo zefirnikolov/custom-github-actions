@@ -43,9 +43,11 @@ jobs:
         run: |
           node -e "let pkg = require('./package.json'); pkg.homepage='${{ inputs.subpath }}'; require('fs').writeFileSync('package.json', JSON.stringify(pkg, null, 2));"
           cat package.json
-      - name: Install dependencies and Build the app
+      - name: Install dependencies
         run: |
           ${{ inputs.install-dependencies-command }}
+      - name: Build the app
+        run: |
           ${{ inputs.build-command }}
 
       # - name: Run tests
