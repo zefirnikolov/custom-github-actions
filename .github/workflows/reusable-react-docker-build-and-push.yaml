@@ -27,14 +27,9 @@ on:
         required: true
         type: string
       # for NOT constantly updating the docker image use the bellow inputs:
-      is_static-docker-image-tag:
-        required: false
-        type: boolean
-        default: false
       static-docker-image-tag:
         required: false
         type: string
-        default: false
 
     secrets:
       docker-username:
@@ -56,10 +51,10 @@ jobs:
         with:
           node-version: ${{ inputs.node-version }}
 
-      - name: Add homepage field to package.json
-        run: |
-          node -e "let pkg = require('./package.json'); pkg.homepage='${{ inputs.subpath }}'; require('fs').writeFileSync('package.json', JSON.stringify(pkg, null, 2));"
-          cat package.json
+      # - name: Add homepage field to package.json
+      #   run: |
+      #     node -e "let pkg = require('./package.json'); pkg.homepage='${{ inputs.subpath }}'; require('fs').writeFileSync('package.json', JSON.stringify(pkg, null, 2));"
+      #     cat package.json
       - name: Install dependencies
         run: |
           ${{ inputs.install-dependencies-command }}
@@ -80,7 +75,7 @@ jobs:
           password: ${{ secrets.docker-password }}
 
       - name: Build and push Docker image
-        if: ${{ inputs.is_static-docker-image-tag == false }}
+        if: ${{ !inputs.static-docker-image-tag }}
         uses: docker/build-push-action@v3
         with:
           context: .
@@ -88,7 +83,7 @@ jobs:
           tags: ${{ secrets.docker-username }}/${{ inputs.docker-image-name }}:${{ github.run_number }}
 
       - name: Build and push Docker image
-        if: ${{ inputs.is_static-docker-image-tag }}
+        if: ${{ inputs.static-docker-image-tag }}
         uses: docker/build-push-action@v3
         with:
           context: .
