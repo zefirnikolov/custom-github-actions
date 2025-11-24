@@ -1,4 +1,3 @@
-
 name: Deploy Helm chart to AKS
 
 on:
