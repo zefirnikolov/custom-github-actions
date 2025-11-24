@@ -41,5 +41,6 @@ jobs:
         uses: docker/build-push-action@v3
         with:
           context: .
+          file: ./Dockerfile-fe
           push: true
           tags: ${{ secrets.docker-username }}/${{ inputs.docker-image-name }}:${{ inputs.static-docker-image-tag }}
