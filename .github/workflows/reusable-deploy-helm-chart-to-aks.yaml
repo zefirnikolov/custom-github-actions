@@ -1,4 +1,5 @@
-name: Build and push to docker hub
+
+name: Deploy Helm chart to AKS
 
 on:
   workflow_call:
@@ -13,11 +14,10 @@ on:
       helm-deployment-name:
         required: true
         type: string
-      # use if your are going to use --values or --set flags
       additional-helm-commands:
         required: false
         type: string
-    
+
     secrets:
       azure-credentials:
         required: true
@@ -25,8 +25,14 @@ on:
         required: true
       resource-group:
         required: true
-
-      
+      DB_HOSTNAME:
+        required: false
+      DB_USER:
+        required: false
+      DB_PASSWORD:
+        required: false
+      DB_NAME:
+        required: false
 
 jobs:
   deploy-to-k8s:
@@ -34,26 +40,37 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Check out code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
+
       - name: Login to Azure
         uses: azure/login@v1
         with:
           creds: ${{ secrets.azure-credentials }}
+
       - name: Set AKS Context
         uses: azure/aks-set-context@v3
         with:
           cluster-name: ${{ secrets.aks-cluster-name }}
           resource-group: ${{ secrets.resource-group }}
+
       - name: Install Helm
         uses: azure/setup-helm@v3
         with:
           version: '3.16.4'
+
       - name: Delete the helm chart
         continue-on-error: true
         run: |
           helm uninstall ${{ inputs.helm-deployment-name }}
+
       - name: Install the helm chart
         run: |
           sleep 5
-          helm install ${{ inputs.helm-deployment-name }} ${{ inputs.helm-chart-name }} ${{ inputs.additional-helm-commands }}
-          
+          helm install \
+            ${{ inputs.helm-deployment-name }} \
+            ${{ inputs.helm-chart-name }} \
+            ${{ inputs.additional-helm-commands }} \
+            --set server.dbHostname="${{ secrets.DB_HOSTNAME }}" \
+            --set server.dbUser="${{ secrets.DB_USER }}" \
+            --set server.dbUserPassword="${{ secrets.DB_PASSWORD }}" \
+            --set server.dbName="${{ secrets.DB_NAME }}"
